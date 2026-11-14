@@ -1,0 +1,395 @@
+[
+ {
+  "name": "Tadka dal",
+  "region": "North",
+  "method": "tempering",
+  "taste": [
+   "comforting",
+   "spicy"
+  ],
+  "ingredients": [
+   "dal",
+   "ghee",
+   "cumin",
+   "garlic",
+   "red chilli",
+   "turmeric",
+   "coriander"
+  ],
+  "steps": [
+   "Boil dal with turmeric until soft.",
+   "Heat ghee, add cumin, garlic and red chilli.",
+   "Pour the tadka over the dal.",
+   "Garnish with coriander."
+  ],
+  "note": "",
+  "story": "Smoky cumin and chilli bloomed in hot ghee, poured over soft dal. The sound of the sizzle is half the memory.",
+  "by": "Echo Archive",
+  "source": "RecipeDB sample"
+ },
+ {
+  "name": "Peanut tempered rice",
+  "region": "South",
+  "method": "tempering",
+  "taste": [
+   "comforting",
+   "light"
+  ],
+  "ingredients": [
+   "rice",
+   "peanuts",
+   "onion",
+   "mustard seeds",
+   "curry leaves",
+   "green chilli",
+   "oil"
+  ],
+  "steps": [
+   "Heat oil, crackle mustard seeds.",
+   "Fry peanuts, curry leaves, green chilli and onion.",
+   "Mix in cooked rice and salt."
+  ],
+  "note": "",
+  "story": "Leftover rice turned into something crunchy and bright with a mustard-seed tempering.",
+  "by": "Echo Archive",
+  "source": "RecipeDB sample"
+ },
+ {
+  "name": "Lemon rice",
+  "region": "South",
+  "method": "tempering",
+  "taste": [
+   "light",
+   "fresh"
+  ],
+  "ingredients": [
+   "rice",
+   "lemon",
+   "peanuts",
+   "mustard seeds",
+   "curry leaves",
+   "turmeric",
+   "oil"
+  ],
+  "steps": [
+   "Temper mustard seeds, peanuts and curry leaves in oil.",
+   "Add turmeric and cooked rice.",
+   "Finish with lemon juice."
+  ],
+  "note": "",
+  "story": "A sunny, tangy rice that travels well and tastes like a long train ride.",
+  "by": "Echo Archive",
+  "source": "RecipeDB sample"
+ },
+ {
+  "name": "Coriander potato curd bowl",
+  "region": "North",
+  "method": "mixing",
+  "taste": [
+   "light",
+   "fresh",
+   "comforting"
+  ],
+  "ingredients": [
+   "potato",
+   "curd",
+   "coriander",
+   "ginger",
+   "cumin",
+   "green chilli"
+  ],
+  "steps": [
+   "Mash boiled potatoes lightly.",
+   "Whisk in curd, grated ginger and cumin.",
+   "Top with coriander and green chilli."
+  ],
+  "note": "",
+  "story": "Cool curd, warm cumin and a handful of coriander that was about to go bad.",
+  "by": "Echo Archive",
+  "source": "RecipeDB sample"
+ },
+ {
+  "name": "Jeera aloo",
+  "region": "North",
+  "method": "saute",
+  "taste": [
+   "spicy",
+   "comforting"
+  ],
+  "ingredients": [
+   "potato",
+   "cumin",
+   "oil",
+   "turmeric",
+   "coriander",
+   "red chilli"
+  ],
+  "steps": [
+   "Heat oil, add cumin.",
+   "Add potato, turmeric and red chilli; cook until golden.",
+   "Finish with coriander."
+  ],
+  "note": "",
+  "story": "Golden potatoes with toasted cumin. Simple, honest, always there.",
+  "by": "Echo Archive",
+  "source": "RecipeDB sample"
+ },
+ {
+  "name": "Palak sabzi",
+  "region": "North",
+  "method": "saute",
+  "taste": [
+   "light",
+   "fresh"
+  ],
+  "ingredients": [
+   "spinach",
+   "onion",
+   "garlic",
+   "cumin",
+   "tomato",
+   "oil"
+  ],
+  "steps": [
+   "Saute cumin, garlic and onion in oil.",
+   "Add tomato, then spinach.",
+   "Cook until wilted."
+  ],
+  "note": "",
+  "story": "Half a packet of spinach, saved from the fridge and turned into dinner.",
+  "by": "Echo Archive",
+  "source": "RecipeDB sample"
+ },
+ {
+  "name": "Tomato rasam",
+  "region": "South",
+  "method": "simmer",
+  "taste": [
+   "spicy",
+   "light"
+  ],
+  "ingredients": [
+   "tomato",
+   "tamarind",
+   "black pepper",
+   "cumin",
+   "curry leaves",
+   "garlic",
+   "hing"
+  ],
+  "steps": [
+   "Simmer tomato with tamarind.",
+   "Crush pepper, cumin and garlic; add.",
+   "Temper with hing and curry leaves."
+  ],
+  "note": "",
+  "story": "Peppery, tangy and thin. Medicine and comfort in one cup.",
+  "by": "Echo Archive",
+  "source": "RecipeDB sample"
+ },
+ {
+  "name": "Mint chutney",
+  "region": "West",
+  "method": "blend",
+  "taste": [
+   "fresh",
+   "spicy"
+  ],
+  "ingredients": [
+   "mint",
+   "coriander",
+   "green chilli",
+   "lemon",
+   "ginger"
+  ],
+  "steps": [
+   "Blend everything with a little water.",
+   "Adjust lemon and salt."
+  ],
+  "note": "",
+  "story": "Fresh, sharp and green. It lifts every plate it touches.",
+  "by": "Echo Archive",
+  "source": "RecipeDB sample"
+ },
+ {
+  "name": "Curd rice",
+  "region": "South",
+  "method": "mixing",
+  "taste": [
+   "light",
+   "comforting"
+  ],
+  "ingredients": [
+   "rice",
+   "curd",
+   "ginger",
+   "mustard seeds",
+   "curry leaves"
+  ],
+  "steps": [
+   "Mix cooked rice with curd.",
+   "Temper mustard seeds and curry leaves; stir in grated ginger."
+  ],
+  "note": "",
+  "story": "Cooling, gentle and tangy. The last course of a South Indian meal.",
+  "by": "Echo Archive",
+  "source": "RecipeDB sample"
+ },
+ {
+  "name": "Spinach dal",
+  "region": "North",
+  "method": "simmer",
+  "taste": [
+   "light",
+   "fresh"
+  ],
+  "ingredients": [
+   "dal",
+   "spinach",
+   "garlic",
+   "cumin",
+   "ghee"
+  ],
+  "steps": [
+   "Boil dal until soft.",
+   "Add chopped spinach and cook 3 minutes.",
+   "Temper cumin and garlic in ghee; pour over."
+  ],
+  "note": "",
+  "story": "Green and earthy, with a tempering poured over at the last second.",
+  "by": "Echo Archive",
+  "source": "RecipeDB sample"
+ },
+ {
+  "name": "20-Min One-Pot Dal",
+  "by": "Priya S.",
+  "region": "North",
+  "method": "seed",
+  "taste": [
+   "comforting"
+  ],
+  "ingredients": [
+   "dal",
+   "butter",
+   "cumin",
+   "garlic",
+   "red chilli",
+   "turmeric"
+  ],
+  "steps": [
+   "Pressure cook dal with turmeric.",
+   "Fry cumin, garlic and chilli in butter.",
+   "Stir in and serve."
+  ],
+  "note": "Swapped ghee for salted butter. Fast, nutty and comforting.",
+  "story": "Swapped ghee for salted butter. Fast, nutty and comforting.",
+  "parent": "Tadka dal",
+  "kind": "Daily meal",
+  "source": "Community"
+ },
+ {
+  "name": "Coconut & Black Mustard Dal",
+  "by": "Arun K.",
+  "region": "South",
+  "method": "seed",
+  "taste": [
+   "comforting"
+  ],
+  "ingredients": [
+   "dal",
+   "coconut",
+   "mustard seeds",
+   "curry leaves",
+   "green chilli",
+   "turmeric"
+  ],
+  "steps": [
+   "Simmer dal with turmeric and coconut.",
+   "Crackle mustard seeds, curry leaves and chilli in oil.",
+   "Pour over."
+  ],
+  "note": "Coastal Kerala twist: coconut for creaminess, mustard seeds for sharpness.",
+  "story": "Coastal Kerala twist: coconut for creaminess, mustard seeds for sharpness.",
+  "parent": "Tadka dal",
+  "kind": "Daily meal",
+  "source": "Community"
+ },
+ {
+  "name": "Smoked Paprika Lentil Soup",
+  "by": "Marcus V.",
+  "region": "Any",
+  "method": "seed",
+  "taste": [
+   "comforting"
+  ],
+  "ingredients": [
+   "dal",
+   "garlic",
+   "red chilli",
+   "cumin",
+   "oil",
+   "onion"
+  ],
+  "steps": [
+   "Soften onion and garlic.",
+   "Add dal and water; simmer until soft.",
+   "Finish with cumin and chilli."
+  ],
+  "note": "Madrid kitchen version: smoky chilli stands in for the original ember heat.",
+  "story": "Madrid kitchen version: smoky chilli stands in for the original ember heat.",
+  "parent": "Tadka dal",
+  "kind": "Daily meal",
+  "source": "Community"
+ },
+ {
+  "name": "Grandmother-style leftover dal",
+  "by": "Vansh",
+  "region": "East",
+  "method": "seed",
+  "taste": [
+   "comforting",
+   "spicy"
+  ],
+  "ingredients": [
+   "dal",
+   "mustard oil",
+   "red chilli",
+   "garlic",
+   "cumin"
+  ],
+  "steps": [
+   "Warm the leftover dal.",
+   "Smoke mustard oil, add garlic, cumin and chilli.",
+   "Pour over."
+  ],
+  "note": "Smoky, sharp aroma from mustard oil.",
+  "story": "Smoky, sharp aroma from mustard oil.",
+  "parent": "Tadka dal",
+  "kind": "Family dish",
+  "source": "Community"
+ },
+ {
+  "name": "Hostel peanut rice",
+  "by": "Vansh",
+  "region": "South",
+  "method": "seed",
+  "taste": [
+   "light"
+  ],
+  "ingredients": [
+   "rice",
+   "onion",
+   "peanuts",
+   "oil"
+  ],
+  "steps": [
+   "Fry peanuts and onion in oil.",
+   "Toss in leftover rice with salt."
+  ],
+  "note": "Crunchy and nutty. Ready in 10 minutes.",
+  "story": "Crunchy and nutty. Ready in 10 minutes.",
+  "parent": "Peanut tempered rice",
+  "kind": "Experiment",
+  "source": "Community"
+ }
+]

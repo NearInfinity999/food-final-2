@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Culinary Echo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css"></head><body>
+<header class="top"><div class="w">
+  <a class="logo" href="#/">Echo<small>CULINARY</small></a>
+  <input id="gs" placeholder="Search dishes, flavours, memories" aria-label="Search">
+  <a class="btn sm alt kbtn" href="#/kitchen">🧺 My Kitchen</a>
+  <span id="me"></span>
+</div></header>
+<main class="w" id="view"></main>
+<footer class="w"><q>People first. Technology second. Every dish is a conversation across kitchens, generations and cultures.</q>
+Related flavour compounds suggest connections. They don’t guarantee identical taste, so follow your palate.</footer>
+<nav class="tabbar" id="tb" aria-label="Main">
+  <a href="#/" data-p="home" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+  <a href="#/discover" data-p="discover" aria-label="Discover"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span>Discover</span></a>
+  <a href="#/share" data-p="share" class="plus" aria-label="Share a dish"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></a>
+  <a href="#/communities" data-p="communities" aria-label="Communities"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 5.5a3 3 0 0 1 0 5.6M18.5 14.4c1.6.8 2.5 2.6 2.5 5.6"/></svg><span>Communities</span></a>
+  <a href="#/profile" data-p="profile" aria-label="Profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg><span>Profile</span></a>
+</nav>
+<div id="toast" role="status"></div>
+<script src="/static/app.js"></script></body></html>

@@ -1,0 +1,214 @@
+{
+ "synonyms": {
+  "cilantro": "coriander",
+  "yogurt": "curd",
+  "yoghurt": "curd",
+  "dahi": "curd",
+  "aloo": "potato",
+  "chili": "green chilli",
+  "chilli": "green chilli",
+  "green chili": "green chilli",
+  "red chili": "red chilli",
+  "groundnuts": "peanuts",
+  "groundnut": "peanuts",
+  "lentils": "dal",
+  "palak": "spinach",
+  "jeera": "cumin",
+  "lime": "lemon",
+  "pudina": "mint",
+  "asafoetida": "hing",
+  "leftover rice": "rice",
+  "leftover dal": "dal",
+  "red lentil": "dal",
+  "red lentils": "dal",
+  "lentil": "dal",
+  "rom tomato": "tomato",
+  "garlic clove": "garlic",
+  "garlic cloves": "garlic",
+  "yellow onion": "onion",
+  "ginger root": "ginger",
+  "lemon juice": "lemon",
+  "ground cumin": "cumin",
+  "ground turmeric": "turmeric",
+  "fresh coriander": "coriander"
+ },
+ "common": [
+  "oil",
+  "onion",
+  "lemon",
+  "cumin",
+  "turmeric",
+  "red chilli",
+  "garlic",
+  "ginger",
+  "tomato",
+  "coriander",
+  "potato"
+ ],
+ "ingredients": {
+  "onion": [
+   "sulfur",
+   "sweet",
+   "pungent"
+  ],
+  "garlic": [
+   "sulfur",
+   "pungent",
+   "earthy"
+  ],
+  "ginger": [
+   "pungent",
+   "citrusy",
+   "warm"
+  ],
+  "green chilli": [
+   "pungent",
+   "heat",
+   "grassy"
+  ],
+  "red chilli": [
+   "heat",
+   "smoky",
+   "pungent"
+  ],
+  "coriander": [
+   "citrusy",
+   "grassy",
+   "fresh"
+  ],
+  "mint": [
+   "fresh",
+   "minty",
+   "grassy"
+  ],
+  "curry leaves": [
+   "citrusy",
+   "nutty",
+   "aromatic"
+  ],
+  "cumin": [
+   "earthy",
+   "warm",
+   "nutty"
+  ],
+  "mustard seeds": [
+   "pungent",
+   "nutty",
+   "sharp"
+  ],
+  "mustard oil": [
+   "pungent",
+   "sharp",
+   "nutty",
+   "smoky"
+  ],
+  "ghee": [
+   "buttery",
+   "nutty",
+   "rich"
+  ],
+  "oil": [
+   "neutral"
+  ],
+  "butter": [
+   "buttery",
+   "rich"
+  ],
+  "peanuts": [
+   "nutty",
+   "roasted",
+   "rich"
+  ],
+  "potato": [
+   "starchy",
+   "earthy",
+   "sweet"
+  ],
+  "tomato": [
+   "tangy",
+   "sweet",
+   "umami"
+  ],
+  "lemon": [
+   "citrusy",
+   "tangy",
+   "fresh"
+  ],
+  "tamarind": [
+   "tangy",
+   "sweet"
+  ],
+  "curd": [
+   "tangy",
+   "creamy",
+   "cooling"
+  ],
+  "rice": [
+   "starchy"
+  ],
+  "dal": [
+   "earthy",
+   "nutty",
+   "starchy"
+  ],
+  "spinach": [
+   "grassy",
+   "earthy",
+   "fresh"
+  ],
+  "turmeric": [
+   "earthy",
+   "warm"
+  ],
+  "black pepper": [
+   "pungent",
+   "warm",
+   "heat"
+  ],
+  "hing": [
+   "sulfur",
+   "pungent",
+   "earthy"
+  ],
+  "sesame": [
+   "nutty",
+   "roasted"
+  ],
+  "coconut": [
+   "sweet",
+   "creamy",
+   "nutty"
+  ]
+ },
+ "drinks": {
+  "Masala chaas": [
+   "tangy",
+   "cooling",
+   "earthy"
+  ],
+  "Nimbu pani": [
+   "citrusy",
+   "tangy",
+   "fresh"
+  ],
+  "Mint cooler": [
+   "minty",
+   "fresh",
+   "grassy"
+  ],
+  "Mango lassi": [
+   "sweet",
+   "creamy"
+  ],
+  "Jaljeera": [
+   "tangy",
+   "earthy",
+   "warm"
+  ],
+  "Ginger tea": [
+   "pungent",
+   "warm",
+   "citrusy"
+  ]
+ }
+}
