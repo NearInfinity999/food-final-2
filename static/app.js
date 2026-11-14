@@ -1,133 +1,94 @@
-// Culinary Echo frontend. One page, hash routes:
-// #/ (home feed) #/discover #/kitchen #/dish/ID #/recreate/ID #/lineage/ID #/share #/posted/ID #/communities #/profile #/u/ID #/login
+// Culinary Echo frontend. One page, hash routes: #/ #/discover #/explore #/dish/ID #/recreate/ID #/lineage/ID #/share #/communities #/profile
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-// every request carries X-Requested-With: the server refuses changing requests without it (basic CSRF guard)
-const api = (p, body, method) => fetch('/api/' + p, {method: method || (body ? 'POST' : 'GET'),
-  headers: {'Content-Type': 'application/json', 'X-Requested-With': 'echo'}, body: body ? JSON.stringify(body) : undefined}).then(r => r.json());
+const api = (p, body, method) => fetch('/api/' + p, body
+  ? {method: method || 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)}
+  : {method: method || 'GET'}).then(r => r.json());
 const V = html => { $('view').innerHTML = html; };
 const split = s => s.split(',').map(x => x.trim()).filter(Boolean);
-const toast = t => { const e = $('toast'); e.textContent = t; e.classList.add('s'); setTimeout(() => e.classList.remove('s'), 2200); };
+const toast = t => { const e = $('toast'); e.textContent = t; e.classList.add('s'); setTimeout(() => e.classList.remove('s'), 2000); };
 const store = {
   get: k => { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { return []; } },
   set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 };
-let ME = null;                                   // the signed-in person, or null
-const loadMe = async () => { ME = await api('me'); drawTop(); };
-const needLogin = msg => { toast(msg || 'Log in to do that'); location.hash = '#/login/' + encodeURIComponent(location.hash.slice(2) || ''); };
 const CHIPS = ['Smoky', 'Tangy', 'Crunchy & toasted', 'Fermented', 'Fresh & aromatic', 'Sweet heat'];
 const EMO = [['dal', '🍲'], ['rice', '🍚'], ['spinach', '🥬'], ['potato', '🥔'], ['tomato', '🍅'], ['mint', '🌿'], ['curd', '🥣']];
-const PALETTES = [['#f6c97b', '#e8845a'], ['#cfe3b4', '#6fa66b'], ['#f2b8a2', '#c4472a'], ['#f4dc8e', '#d9a23a'], ['#e9c9a0', '#a8643a'], ['#d9e4a8', '#8fae4a']];
 const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-const hue = n => PALETTES[[...n].reduce((a, c) => a + c.charCodeAt(0), 0) % PALETTES.length];
-const em = d => (EMO.find(e => (d.ingredients || []).includes(e[0])) || [0, '🍛'])[1];
 // pic(d): shows /static/img/<dish-name-slug>.jpg if it exists, otherwise falls back to the emoji
 const pic = d => `<img src="/static/img/${slug(d.name)}.jpg" alt="${esc(d.name)}" onerror="this.replaceWith(document.createTextNode('${em(d)}'))">`;
-const art = (d, cls) => `<div class="art ${cls || ''}" style="background:linear-gradient(135deg,${hue(d.name)[0]},${hue(d.name)[1]})">${pic(d)}</div>`;
-const bc = b => ({'From RecipeDB': 'b-db', 'Flavour reference': 'b-fl', 'FlavorDB pairing': 'b-fl', 'Community-reported': 'b-cm', 'Our rule': 'b-es', 'Estimate': 'b-es'}[b] || 'b-es');
+const em = d => (EMO.find(e => (d.ingredients || []).includes(e[0])) || [0, '🍛'])[1];
+const bc = b => ({'From RecipeDB': 'b-db', 'Flavour reference': 'b-fl', 'Community-reported': 'b-cm', 'Estimate': 'b-es'}[b] || 'b-es');
 const badge = b => `<span class="badge ${bc(b)}">${esc(b)}</span>`;
+const PAL = [['#f6c97b', '#e8845a'], ['#9fd8a8', '#4f9d69'], ['#f2b5a7', '#d9532f'], ['#a9c8f2', '#5b8fd9'], ['#e5c3f0', '#9a6bc2'], ['#f5e08a', '#e0a21b']];
+const grad = d => { let h = 0; for (const ch of String(d.name || '')) h = (h * 31 + ch.charCodeAt(0)) % 997; const p = PAL[h % PAL.length]; return `background:linear-gradient(135deg,${p[0]},${p[1]})`; };
 const tags = (a, c) => a.map(x => `<span class="tag ${c || ''}">${esc(x)}</span>`).join('');
-const avatar = (name, size) => `<span class="av" style="width:${size || 36}px;height:${size || 36}px;font-size:${(size || 36) * .42}px;background:linear-gradient(135deg,${hue(name || '?')[0]},${hue(name || '?')[1]})">${esc((name || '?')[0].toUpperCase())}</span>`;
-const who = (id, name) => id ? `<a href="#/u/${id}">${esc(name)}</a>` : esc(name);
-
-// ---------- top bar ----------
-function drawTop() {
-  $('me').innerHTML = ME ? `<a href="#/profile" title="Your profile">${avatar(ME.name, 34)}</a>` : `<a class="btn sm alt" href="#/login">Log in</a>`;
-}
 
 // ---------- shared pieces ----------
-// post(c): one big photo card in the feed
-function post(c) {
-  const saved = store.get('ce_want').includes(c.id);
-  return `<article class="post dc">
-    <div class="ph"><a href="${c.author_id ? '#/u/' + c.author_id : '#/dish/' + c.id}">${avatar(c.by, 38)}</a>
-      <div><b>${who(c.author_id, c.by)}</b><div class="mut">${esc(c.cuisine)} · about ${c.minutes} min</div></div>
-      ${c.privacy === 'Private' ? '<span class="tag src" style="margin-left:auto">Only you</span>' : ''}</div>
-    <a href="#/dish/${c.id}" data-dbl="${c.id}">${art(c, 'big')}</a>
-    <div class="acts"><button class="ic ${c.liked ? 'on' : ''}" data-like="${c.id}" aria-label="Like">${c.liked ? '♥' : '♡'}</button>
-      <a class="ic" href="#/dish/${c.id}" aria-label="Open dish">💬</a>
-      <a class="btn sm alt" href="#/recreate/${c.id}">Try</a>
-      <a class="btn sm alt" href="#/lineage/${c.id}">Tree</a>
-      <button class="btn sm alt" data-want="${c.id}" style="margin-left:auto">${saved ? 'Saved ✓' : 'Save'}</button></div>
-    <div class="cap"><div class="mut" data-lc="${c.id}">${c.likes} likes · ${c.echoes} echoes</div>
-      <b><a href="#/dish/${c.id}">${esc(c.name)}</a></b> <span class="mut">${esc(c.story)}</span>
-      <div class="chips">${tags(c.tags, 'src')}</div></div></article>`;
-}
-// tile(c): a square in a photo grid (Discover, profiles)
-const tile = c => `<a class="tile" href="#/dish/${c.id}">${art(c)}<span class="tn">${esc(c.name)}</span></a>`;
-function dcard(c) {   // kept for older screens (dish page variations, Explore)
-  const saved = store.get('ce_want').includes(c.id);
-  return `<div class="card dc"><a href="#/dish/${c.id}">${art(c)}</a>
-    <div class="mut">${esc(c.region)} · by ${who(c.author_id, c.by)}</div>
+function dcard(c) {
+  const saved = store.get('ce_want').includes(c.id), liked = store.get('ce_like').includes(c.id);
+  return `<article class="card dc">
+    <div class="chd"><span class="av">${esc((c.by || '?')[0].toUpperCase())}</span><div><b>${esc(c.by)}</b><small>${esc(c.region)}</small></div><span class="tag src">${esc(c.source)}</span></div>
+    <a href="#/dish/${c.id}"><div class="art" style="${grad(c)}"><span>${pic(c)}</span></div></a>
+    <div class="in"><div class="acts">
+      <button class="ib ${liked ? 'on' : ''}" data-like="${c.id}" aria-label="Like">${liked ? '❤️' : '🤍'}</button>
+      <a class="ib" href="#/recreate/${c.id}" aria-label="Try recreating" title="Try recreating">🥘</a>
+      <a class="ib" href="#/lineage/${c.id}" aria-label="Lineage tree" title="Lineage tree">🌳</a>
+      <button class="ib" data-want="${c.id}" aria-label="Save" style="margin-left:auto">${saved ? '🔖' : '📑'}</button></div>
     <h3><a href="#/dish/${c.id}">${esc(c.name)}</a></h3>
     <p class="mut">${esc(c.story)}</p>
     <div class="chips">${tags(c.tags, 'src')}</div>
-    <div class="mut">${c.echoes} echoes</div>
-    <a class="btn sm alt" href="#/recreate/${c.id}">Try</a>
-    <button class="btn sm alt" data-want="${c.id}">${saved ? 'Saved ✓' : 'Save'}</button>
-    <a class="btn sm alt" href="#/lineage/${c.id}">Tree</a></div>`;
+    <div class="mut">${c.echoes} echoes</div></div></article>`;
 }
 function wire() {
+  document.querySelectorAll('[data-like]').forEach(b => b.onclick = () => {
+    let l = store.get('ce_like'); const id = b.dataset.like;
+    l = l.includes(id) ? l.filter(x => x !== id) : [...l, id]; store.set('ce_like', l);
+    b.textContent = l.includes(id) ? '❤️' : '🤍'; b.classList.add('on');
+  });
   document.querySelectorAll('[data-want]').forEach(b => b.onclick = () => {
     let w = store.get('ce_want'); const id = b.dataset.want;
     w = w.includes(id) ? w.filter(x => x !== id) : [...w, id]; store.set('ce_want', w);
-    b.textContent = w.includes(id) ? 'Saved ✓' : 'Save';
-  });
-  const like = async id => {
-    const r = await api('like/' + id, {});
-    if (r.error) return needLogin('Log in to like dishes');
-    document.querySelectorAll(`[data-like="${id}"]`).forEach(b => { b.classList.toggle('on', r.liked); b.textContent = r.liked ? '♥' : '♡'; });
-    document.querySelectorAll(`[data-lc="${id}"]`).forEach(e => { e.textContent = e.textContent.replace(/^\d+ likes/, r.likes + ' likes'); });
-  };
-  document.querySelectorAll('[data-like]').forEach(b => b.onclick = () => like(b.dataset.like));
-  document.querySelectorAll('[data-dbl]').forEach(a => a.ondblclick = e => { e.preventDefault(); like(a.dataset.dbl); });
-  document.querySelectorAll('[data-follow]').forEach(b => b.onclick = async () => {
-    const on = b.dataset.on !== '1', r = await api('follow/' + b.dataset.follow, {on});
-    if (r.error) return needLogin('Log in to follow cooks');
-    route();
+    b.textContent = w.includes(id) ? '🔖' : '📑'; toast(w.includes(id) ? 'Saved to your collection' : 'Removed');
   });
 }
 
-// ---------- Home: stories row + feed ----------
-async function home(tab) {
-  tab = tab === 'following' ? 'following' : 'for-you';
-  const [st, ds] = await Promise.all([api('stories'), api('dishes' + (tab === 'following' ? '?tab=following' : ''))]);
-  const ring = (href, inner, label) => `<a class="story" href="${href}"><span class="ring">${inner}</span><span>${esc(label)}</span></a>`;
-  V(`<div class="feedcol">
-    <div class="stories">${st.cuisines.map(c => ring('#/discover/?cuisine=' + encodeURIComponent(c), '<span class="av" style="width:100%;height:100%;font-size:26px;background:var(--warm)">🍛</span>', c)).join('')}
-      ${st.cooks.map(k => ring('#/u/' + k.id, avatar(k.name, 56), k.name)).join('')}</div>
-    <a class="kitchen-cta" href="#/kitchen"><span style="font-size:30px">🧺</span><div><b>My Kitchen</b><div class="mut">Type what is in your kitchen and see what you can cook tonight.</div></div></a>
-    <div class="seg tabs2"><button class="${tab === 'for-you' ? 'on' : ''}" onclick="location.hash='#/'">For you</button>
-      <button class="${tab === 'following' ? 'on' : ''}" onclick="location.hash='#/following'">Following</button></div>
-    ${ds.map(post).join('') || (tab === 'following'
-      ? `<div class="card center"><h3>${ME ? 'No posts from cooks you follow yet' : 'Log in to see cooks you follow'}</h3><p class="mut">${ME ? 'Follow a cook from the row above and their dishes will show up here.' : 'Follow people whose cooking you love and their dishes land here.'}</p>${ME ? '' : '<a class="btn" href="#/login/following">Log in</a>'}</div>`
-      : '<div class="card">Nothing here yet. Be the first to share one.</div>')}
-    <div class="note warm">Related flavour compounds suggest connections, but they never guarantee the exact same taste.</div></div>`);
-  wire();
+// ---------- Landing ----------
+async function landing() {
+  const l = await api('lineage/base-0');
+  V(`<section class="hero"><span class="fl f1">🌶️</span><span class="fl f2">🍋</span><span class="fl f3">🌿</span><div class="eyebrow">A social hearth for food lineages</div>
+    <h1>Every dish leaves an <em>echo.</em></h1>
+    <p>A warm space to share tastes, trace dish lineages across cultures, recreate memories and reinvent recipes together.</p>
+    <a class="btn" href="#/discover">Start exploring</a> <a class="btn alt" href="#/share">Share a dish</a>
+    <div class="orb"><img src="/static/img/hero.jpg" alt="" onerror="this.replaceWith(document.createTextNode('🍲'))"></div></section>
+    <section class="s"><div class="center"><div class="eyebrow">The kitchen philosophy</div><h2>The Echo Loop</h2></div>
+    <div class="g3" style="margin-top:16px">
+      ${[['🧭', 'Discover by memory', 'Explore dishes by smell, taste and nostalgia.', '#/discover'],
+         ['🥘', 'Recreate & adapt', 'Tweak ingredients for your pantry while keeping the soul of the dish.', '#/recreate/base-0'],
+         ['🌳', 'Branch the tree', 'Share your variation and watch it ripple outward.', '#/lineage/base-0']]
+        .map((x, i) => `<a class="card dc" style="animation-delay:${i * .12}s" href="${x[3]}"><div style="font-size:34px">${x[0]}</div><h3>${x[1]}</h3><p class="mut">${x[2]}</p></a>`).join('')}
+    </div></section>
+    <section class="s"><div class="eyebrow">Interactive lineage</div><h2>From one kitchen to many</h2>
+    <div class="card" style="margin-top:12px"><div class="note warm"><b>${esc(l.root.name)}</b> · root of the tree · ${l.nodes.length} variations</div>
+    <div class="g3">${l.nodes.slice(0, 3).map(n => `<a class="card" href="#/dish/${n.id}"><div class="mut">by ${esc(n.by)}</div><h3>${esc(n.name)}</h3><p class="mut">${esc(n.note)}</p></a>`).join('')}</div>
+    <a class="btn sm" href="#/lineage/base-0" style="margin-top:12px">Open the full tree</a></div></section>
+    <section class="s"><div class="eyebrow">Palate compass</div><h2>Trending flavour profiles</h2>
+    <div class="chips">${CHIPS.map(c => `<a class="chip" href="#/discover/~${encodeURIComponent(c)}">${c}</a>`).join('')}</div></section>
+    <div class="note warm"><b>Taste with curiosity, adjust with love.</b> Related flavour compounds suggest connections, but they never guarantee the exact same taste.</div>`);
 }
 
-// ---------- Discover (filters) ----------
-const F0 = {chip: '', q: '', region: '', cuisine: '', diet: '', method: '', time: ''};
-let F = {...F0};
+// ---------- Discover ----------
 async function discover(arg) {
-  if (arg !== undefined) {                      // a link sets the filters fresh; plain #/discover keeps what you chose
-    if (arg === '') F = {...F};
-    else if (arg[0] === '?') { F = {...F0}; new URLSearchParams(arg.slice(1)).forEach((v, k) => { if (k in F0) F[k] = v; }); }
-    else { const a = decodeURIComponent(arg); F = {...F0}; if (a[0] === '~') F.chip = a.slice(1); else F.q = a; }
-  }
-  const qs = Object.entries(F).filter(e => e[1]).map(e => e[0] + '=' + encodeURIComponent(e[1])).join('&');
-  const [ds, fl] = await Promise.all([api('dishes?' + qs), api('filters')]);
-  const row = (label, key, opts, fmt) => `<div class="frow"><span class="fl">${label}</span><div class="chips scroll">
-    <button class="chip ${F[key] ? '' : 'on'}" data-f="${key}" data-v="">Any</button>
-    ${opts.map(o => `<button class="chip ${String(F[key]) === String(o) ? 'on' : ''}" data-f="${key}" data-v="${esc(o)}">${esc(fmt ? fmt(o) : o)}</button>`).join('')}</div></div>`;
-  const active = Object.values(F).filter(Boolean).length;
-  V(`<section class="s"><h2>Discover</h2>
-    <div class="filters">${row('Taste', 'chip', fl.tastes)}${row('Region', 'region', fl.regions)}${row('Cuisine', 'cuisine', fl.cuisines)}
-      ${row('Diet', 'diet', fl.diets, o => o[0].toUpperCase() + o.slice(1))}${row('Method', 'method', fl.methods)}${row('Time', 'time', fl.times, o => 'Under ' + o + ' min')}</div>
-    <p class="mut">${F.q ? `Results for “${esc(F.q)}” · ` : ''}${ds.length} ${ds.length === 1 ? 'dish' : 'dishes'}${active ? ' · <a href="#/discover/?" id="clr"><b>Clear filters</b></a>' : ''}</p>
-    <div class="photogrid">${ds.map(tile).join('') || '<div class="card" style="grid-column:1/-1">No dish matches all of those filters. Remove one to see more.</div>'}</div></section>`);
-  document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { F[b.dataset.f] = b.dataset.v; discover(); });
-  const c = $('clr'); if (c) c.onclick = e => { e.preventDefault(); F = {...F0}; discover(); };
+  let chip = '', q = '';
+  if (arg) { const a = decodeURIComponent(arg); if (a[0] === '~') chip = a.slice(1); else q = a; }
+  const ds = await api('dishes?chip=' + encodeURIComponent(chip) + '&q=' + encodeURIComponent(q));
+  const ex = await api('explore/base-0');
+  V(`<section class="s"><div class="eyebrow">Flavour palette</div><h2>Discover</h2>
+    <div class="chips"><a class="chip ${chip ? '' : 'on'}" href="#/discover">All</a>
+    ${CHIPS.map(c => `<a class="chip ${c === chip ? 'on' : ''}" href="#/discover/~${encodeURIComponent(c)}">${c}</a>`).join('')}</div>
+    ${ex.length ? `<div class="note warm"><b>Follow your curiosity:</b> Loved Tadka dal? Try <a href="#/dish/${ex[0].id}"><b>${esc(ex[0].name)}</b></a>. ${esc(ex[0].text)}.</div>` : ''}
+    ${q ? `<p class="mut">Results for “${esc(q)}”</p>` : ''}
+    <div class="grid">${ds.map(dcard).join('') || '<div class="card">Nothing here yet. Be the first to share one.</div>'}</div></section>`);
+  wire();
 }
 
 // ---------- Explore (dishes grouped by flavour direction) ----------
@@ -139,66 +100,19 @@ async function explore() {
   wire();
 }
 
-// ---------- My Kitchen ----------
-const KS = {have: [], soon: [], region: '', max: 0};
-async function kitchen() {
-  const regions = (await api('filters')).regions;
-  const staples = ['dal', 'rice', 'potato', 'tomato', 'onion', 'spinach', 'curd', 'ghee', 'cumin', 'garlic', 'lemon', 'peanuts'];
-  V(`<section class="s"><h2>My Kitchen</h2>
-    <p class="mut">Add what you have. Tap an ingredient to mark it ⏳ use soon, and we will favour dishes that use it up.</p>
-    <div class="two"><div class="card"><input id="ki" placeholder="Type an ingredient and press Enter" autocomplete="off">
-      <div class="chips" id="kc" style="margin-top:10px"></div>
-      <div class="mut">Quick add: ${staples.map(c => `<a class="chip" data-a="${c}">+ ${c}</a>`).join(' ')}</div>
-      <label>Region</label><select id="kr"><option value="">Anywhere</option>${regions.map(r => `<option ${KS.region === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
-      <label>Time you have</label><div class="seg" id="kt">${[[0, 'Any'], [15, '15 min'], [30, '30 min'], [45, '45 min']].map(t => `<button class="${KS.max === t[0] ? 'on' : ''}" data-t="${t[0]}">${t[1]}</button>`).join('')}</div></div>
-    <div id="kres"></div></div></section>`);
-  const draw = () => {
-    $('kc').innerHTML = KS.have.map(h => `<span class="chip ${KS.soon.includes(h) ? 'soon' : 'on'}" data-s="${esc(h)}">${KS.soon.includes(h) ? '⏳ ' : ''}${esc(h)} <b data-x="${esc(h)}" aria-label="Remove ${esc(h)}">×</b></span>`).join('') || '<span class="mut">Nothing added yet</span>';
-    document.querySelectorAll('#kc [data-s]').forEach(c => c.onclick = e => {
-      if (e.target.dataset.x) KS.have = KS.have.filter(x => x !== e.target.dataset.x), KS.soon = KS.soon.filter(x => x !== e.target.dataset.x);
-      else KS.soon = KS.soon.includes(c.dataset.s) ? KS.soon.filter(x => x !== c.dataset.s) : [...KS.soon, c.dataset.s];
-      draw(); run();
-    });
-  };
-  const run = async () => {
-    if (!KS.have.length) { $('kres').innerHTML = '<div class="card center"><div style="font-size:34px">🧺</div><h3>Your kitchen is empty</h3><p class="mut">Add two or three ingredients to see what you can cook.</p></div>'; return; }
-    const rs = await api('kitchen', {ingredients: KS.have, soon: KS.soon, region: KS.region, max_min: KS.max});
-    $('kres').innerHTML = rs.length ? rs.map(r => `<div class="card dc" style="margin-bottom:14px"><div class="mut">${esc(r.cuisine)} · about ${r.minutes} min · ${esc(r.source)}</div>
-      <h3><a href="#/dish/${r.id}">${esc(r.name)}</a></h3>
-      <p><b>Uses ${r.uses} of ${r.of} ingredients</b>${r.uses_soon.length ? ` · ⏳ uses your ${esc(r.uses_soon.join(', '))}` : ''}</p>
-      <div class="chips">${tags(r.have, 'have')}${tags(r.missing, 'miss')}</div>
-      ${r.swaps.slice(0, 3).map(w => `<div class="note"><b>${esc(w.to)}</b> can stand in for <b>${esc(w.from)}</b>: shares ${esc(w.shared.join(', '))}.</div>`).join('')}
-      ${r.missing.length ? `<p class="mut">Missing: ${esc(r.missing.join(', '))}${r.swaps.length ? '' : '. No close swap in your kitchen.'}</p>` : '<p class="mut">You have everything.</p>'}
-      <a class="btn sm" href="#/recreate/${r.id}">Cook this</a> <a class="btn sm alt" href="#/dish/${r.id}">See dish</a></div>`).join('')
-      : '<div class="card">Nothing fits that region and time. Try a longer time or another region.</div>';
-  };
-  const add = v => { split(v).forEach(n => { n = n.toLowerCase(); if (!KS.have.includes(n)) KS.have.push(n); }); $('ki').value = ''; draw(); run(); };
-  $('ki').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); add($('ki').value); } };
-  document.querySelectorAll('[data-a]').forEach(a => a.onclick = () => add(a.dataset.a));
-  $('kr').onchange = e => { KS.region = e.target.value; run(); };
-  document.querySelectorAll('#kt button').forEach(b => b.onclick = () => { KS.max = +b.dataset.t; document.querySelectorAll('#kt button').forEach(x => x.classList.toggle('on', x === b)); run(); });
-  draw(); run();
-}
-
-// ---------- Pairs well with ----------
-const pairsHtml = (ps, title) => ps.length ? `<section class="s"><h2>${title || 'Pairs well with'}</h2><div class="pairs">
-  ${ps.map(p => `<a class="pair" href="#/dish/${p.id}"><span class="tag ${p.kind === 'echo' ? 'swp' : 'src'}">${p.kind === 'echo' ? 'Echo pair' : 'Contrast pair'}</span>
-    <h3>${esc(p.name)}</h3><div class="mut">${esc(p.text)}</div><div style="margin-top:6px">${badge(p.badge)}</div></a>`).join('')}</div></section>` : '';
-
 // ---------- Dish detail ----------
 async function dish(id) {
   const d = await api('dish/' + id);
   if (d.error) return V('<p>Dish not found.</p>');
-  V(`<a class="mut" href="#/">← Back</a>
+  V(`<a class="mut" href="#/discover">← Back to Discover</a>
     <div class="two" style="margin-top:12px"><div>
-      ${art(d, 'hero')}
-      <div class="eyebrow">${esc(d.cuisine)} · ${esc(d.source)}</div>
+      <div class="art" style="height:260px;font-size:110px">${pic(d)}</div>
+      <div class="eyebrow">${esc(d.region)} · ${esc(d.source)}</div>
       <h1 style="font-size:2.4rem">${esc(d.name)}</h1>
-      <p class="mut">by ${who(d.author_id, d.by)} · about ${d.minutes} min · ${d.likes} likes · ${d.echoes} echoes</p><div class="chips">${tags(d.tags, 'src')}${tags(d.diets.slice(0, 1), 'have')}</div>
+      <p class="mut">by ${esc(d.by)} · ${d.echoes} echoes</p><div class="chips">${tags(d.tags, 'src')}</div>
       <div class="card warm"><h3>The hearth story</h3><p>${esc(d.story || d.note || 'No story yet. Add yours by sharing a version.')}</p></div>
       <section class="s"><h2>Soul ingredients</h2><div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
       ${d.ingredient_details.map(i => `<div class="card"><b>${esc(i.name)}</b><div>${badge(i.badge)}</div><div class="mut">${esc(i.notes.join(', '))}</div></div>`).join('') || '<p class="mut">No ingredients listed.</p>'}</div></section>
-      ${pairsHtml(d.pairs)}
       <section class="s"><h2>Method</h2><ol>${d.steps.map(s => `<li>${esc(s)}</li>`).join('') || '<li class="mut">No steps shared yet.</li>'}</ol></section>
       <section class="s"><div class="eyebrow">Lineage evolution</div><h2>The living tree: ${d.variations.length} community variations</h2>
       <div class="grid" style="grid-template-columns:1fr">${d.variations.map(dcard).join('') || '<div class="card">No variations yet. Make the first one.</div>'}</div>
@@ -273,7 +187,6 @@ async function recreate(id) {
         const res = await api('save', {name: d.name + ' (my echo)', kind: 'Experiment', ingredients: r.new_ingredients, steps: r.steps,
           taste: r.taste, region: r.region, method: r.method, parent: d.name, privacy: 'Community',
           note: 'Swaps: ' + (r.swaps.map(w => `${w.from} → ${w.to}`).join(', ') || 'none'), story: 'My recreation of ' + d.name});
-        if (res.error) return needLogin(res.error);
         toast('Your version joined the tree'); location.hash = '#/lineage/saved-' + res.id;
       };
     }
@@ -297,6 +210,35 @@ async function lineage(id) {
       <a class="btn sm alt" href="#/dish/${n.id}">Inspect recipe</a></div>`).join('') || '<div class="card">No variations yet. Be the first to fork it.</div>'}</div>`);
 }
 
+// ---------- Share (low friction) ----------
+function share() {
+  const S = {type: 'Dish', sens: []};
+  V(`<section class="s" style="max-width:720px;margin:0 auto"><div class="eyebrow">Share an echo</div><h1 style="font-size:2.2rem">What are you sharing?</h1>
+    <div class="card" style="margin-top:14px">
+    <div class="seg" id="ty">${['Dish', 'Memory', 'Experiment', 'Drink'].map((t, i) => `<button class="${i ? '' : 'on'}" data-t="${t}">${['🍛', '💭', '🧪', '🥤'][i]} ${t}</button>`).join('')}</div>
+    <input id="nm" placeholder="Name it: e.g. Dadi’s smoky dal">
+    <label>Photo (optional)</label><label class="drop" for="ph" id="dz">📷 Tap to add a photo</label><input type="file" id="ph" accept="image/*" hidden>
+    <label>Your story</label><textarea id="sy" placeholder="What did it taste like? What stood out?"></textarea>
+    <details><summary class="mut" style="cursor:pointer;margin-top:10px">More prompts (optional)</summary>
+      <label>What inspired it?</label><input id="in"><label>Did you experiment?</label><input id="xp"></details>
+    <label>Sensory notes</label><div class="chips" id="sn">${CHIPS.map(c => `<span class="chip" data-c="${c}">${c}</span>`).join('')}</div>
+    <label>Ingredients (optional, comma-separated)</label><input id="ig">
+    <label>Who can see this?</label><select id="pv"><option>Community</option><option>Public</option><option>Private</option></select>
+    <button class="btn" id="go" style="margin-top:16px">Share</button> <button class="btn alt" id="sk" style="margin-top:16px">Skip details, just share</button></div></section>`);
+  document.querySelectorAll('#ty button').forEach(b => b.onclick = () => { S.type = b.dataset.t; document.querySelectorAll('#ty button').forEach(x => x.classList.toggle('on', x === b)); });
+  document.querySelectorAll('#sn .chip').forEach(c => c.onclick = () => { c.classList.toggle('on'); S.sens = [...document.querySelectorAll('#sn .on')].map(x => x.dataset.c); });
+  $('ph').onchange = e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = () => { $('dz').innerHTML = `<img src="${r.result}">`; }; r.readAsDataURL(f); } };
+  const post = async quick => {
+    if (!$('nm').value.trim()) return toast('Tell us what you are sharing');
+    const res = await api('save', {name: $('nm').value, kind: S.type === 'Dish' || S.type === 'Memory' ? 'Family dish' : S.type === 'Experiment' ? 'Experiment' : 'Daily meal',
+      story: quick ? '' : $('sy').value, ingredients: quick ? [] : split($('ig').value), sensory: S.sens, privacy: $('pv').value,
+      note: quick ? '' : [$('sy').value, $('in').value && 'Inspired by: ' + $('in').value, $('xp').value && 'Experiment: ' + $('xp').value].filter(Boolean).join(' · ')});
+    if (res.error) return toast(res.error);
+    toast('Shared!'); location.hash = '#/profile';
+  };
+  $('go').onclick = () => post(false); $('sk').onclick = () => post(true);
+}
+
 // ---------- Communities ----------
 async function communities() {
   const cs = await api('communities'), joined = store.get('ce_join');
@@ -311,125 +253,32 @@ async function communities() {
   $('mk').onclick = () => toast('Community creation is on the roadmap');
 }
 
-// ---------- Share (low friction) ----------
-function share() {
-  if (!ME) return needLogin('Log in to share a dish');
-  const S = {type: 'Dish', sens: []};
-  V(`<section class="s" style="max-width:720px;margin:0 auto"><div class="eyebrow">Share an echo</div><h1 style="font-size:2.2rem">What are you sharing?</h1>
-    <div class="card" style="margin-top:14px">
-    <div class="seg" id="ty">${['Dish', 'Memory', 'Experiment', 'Drink'].map((t, i) => `<button class="${i ? '' : 'on'}" data-t="${t}">${['🍛', '💭', '🧪', '🥤'][i]} ${t}</button>`).join('')}</div>
-    <input id="nm" placeholder="Name it: e.g. Dadi’s smoky dal">
-    <label>Photo (optional)</label><label class="drop" for="ph" id="dz">📷 Tap to add a photo</label><input type="file" id="ph" accept="image/*" hidden>
-    <label>Your story</label><textarea id="sy" placeholder="What did it taste like? What stood out?"></textarea>
-    <details><summary class="mut" style="cursor:pointer;margin-top:10px">More prompts (optional)</summary>
-      <label>What inspired it?</label><input id="in"><label>Did you experiment?</label><input id="xp"></details>
-    <label>Sensory notes</label><div class="chips" id="sn">${CHIPS.map(c => `<span class="chip" data-c="${c}">${c}</span>`).join('')}</div>
-    <label>Ingredients (optional, comma-separated)</label><input id="ig">
-    <label>Who can see this?</label><select id="pv"><option value="Community">Community: signed-in people</option><option value="Public">Public: anyone</option><option value="Private">Private: only me</option></select>
-    <button class="btn" id="go" style="margin-top:16px">Share</button> <button class="btn alt" id="sk" style="margin-top:16px">Skip details, just share</button></div></section>`);
-  document.querySelectorAll('#ty button').forEach(b => b.onclick = () => { S.type = b.dataset.t; document.querySelectorAll('#ty button').forEach(x => x.classList.toggle('on', x === b)); });
-  document.querySelectorAll('#sn .chip').forEach(c => c.onclick = () => { c.classList.toggle('on'); S.sens = [...document.querySelectorAll('#sn .on')].map(x => x.dataset.c); });
-  $('ph').onchange = e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = () => { $('dz').innerHTML = `<img src="${r.result}">`; }; r.readAsDataURL(f); } };
-  const post = async quick => {
-    if (!$('nm').value.trim()) return toast('Tell us what you are sharing');
-    const res = await api('save', {name: $('nm').value, kind: S.type === 'Dish' || S.type === 'Memory' ? 'Family dish' : S.type === 'Experiment' ? 'Experiment' : 'Daily meal',
-      story: quick ? '' : $('sy').value, ingredients: quick ? [] : split($('ig').value), sensory: S.sens, privacy: $('pv').value,
-      note: quick ? '' : [$('sy').value, $('in').value && 'Inspired by: ' + $('in').value, $('xp').value && 'Experiment: ' + $('xp').value].filter(Boolean).join(' · ')});
-    if (res.error) return res.error.startsWith('Please log') ? needLogin(res.error) : toast(res.error);
-    toast('Shared!'); location.hash = '#/posted/saved-' + res.id;
-  };
-  $('go').onclick = () => post(false); $('sk').onclick = () => post(true);
-}
-
-// After sharing: confirmation plus "Pairs well with" for the new dish
-async function posted(id) {
-  const d = await api('dish/' + id);
-  if (d.error) return location.hash = '#/profile';
-  V(`<section class="s" style="max-width:720px;margin:0 auto"><div class="card center warm"><div style="font-size:40px">🎉</div><h1 style="font-size:2rem">Shared: ${esc(d.name)}</h1>
-    <p class="mut">${d.privacy === 'Private' ? 'Only you can see it.' : d.privacy === 'Public' ? 'Anyone can see it.' : 'Signed-in people can see it.'}</p>
-    <a class="btn" href="#/dish/${d.id}">Open the dish</a> <a class="btn alt" href="#/profile">Go to my profile</a></div>
-    ${d.pairs.length ? pairsHtml(d.pairs, 'Pairs well with your dish') : '<p class="mut center" style="margin-top:18px">Add ingredients to your dish to get pairing ideas.</p>'}</section>`);
-}
-
-// ---------- Login / sign up ----------
-function login(next) {
-  if (ME) return location.hash = '#/profile';
-  let mode = 'login';
-  const go = decodeURIComponent(next || '') || 'profile';
-  const draw = (err) => {
-    V(`<section class="s" style="max-width:420px;margin:0 auto"><h1 style="font-size:2.2rem">${mode === 'login' ? 'Welcome back' : 'Join the hearth'}</h1>
-      <p class="mut">${mode === 'login' ? 'Log in to share dishes, follow cooks and like what you love.' : 'We store only your name, email and an optional bio. Your password is saved scrambled (hashed), never as typed.'}</p>
-      <div class="card"><div class="seg"><button class="${mode === 'login' ? 'on' : ''}" data-m="login">Log in</button><button class="${mode === 'signup' ? 'on' : ''}" data-m="signup">Sign up</button></div>
-      ${mode === 'signup' ? '<label>Name</label><input id="an" autocomplete="name" maxlength="40">' : ''}
-      <label>Email</label><input id="ae" type="email" autocomplete="email">
-      <label>Password</label><input id="ap" type="password" autocomplete="${mode === 'login' ? 'current-password' : 'new-password'}" placeholder="${mode === 'signup' ? 'At least 8 characters' : ''}">
-      ${err ? `<div class="note" style="background:#fbe3df;color:var(--red)" role="alert">${esc(err)}</div>` : ''}
-      <button class="btn" id="ab" style="margin-top:14px;width:100%">${mode === 'login' ? 'Log in' : 'Create account'}</button></div></section>`);
-    document.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { mode = b.dataset.m; draw(); });
-    const submit = async () => {
-      const body = {email: $('ae').value, password: $('ap').value}; if (mode === 'signup') body.name = $('an').value;
-      const r = await api(mode, body);
-      if (r.error) return draw(r.error);
-      ME = r; drawTop(); toast(mode === 'login' ? 'Welcome back, ' + r.name : 'Welcome, ' + r.name); location.hash = '#/' + (go === 'profile' && mode === 'signup' ? 'profile' : go);
-    };
-    $('ab').onclick = submit; $('ap').onkeydown = e => { if (e.key === 'Enter') submit(); };
-  };
-  draw();
-}
-
-// ---------- Profiles: photo grid ----------
-function profileHead(u, tabsHtml) {
-  return `<section class="s profile"><div class="phead">${avatar(u.name, 84)}<div class="pstats">
-      <div><b>${u.posts.length}</b><span>posts</span></div><div><b>${u.followers}</b><span>followers</span></div><div><b>${u.following}</b><span>following</span></div></div></div>
-    <h2 style="margin-top:12px">${esc(u.name)}</h2><p class="bio">${esc(u.bio) || (u.is_me ? '<span class="mut">Add a short bio so people know your kitchen.</span>' : '')}</p>${tabsHtml || ''}`;
-}
-async function person(id) {
-  const u = await api('user/' + id);
-  if (u.error) return V('<p>Cook not found.</p>');
-  if (u.is_me) return location.hash = '#/profile';
-  V(profileHead(u) + `<div style="margin:12px 0"><button class="btn ${u.is_following ? 'alt' : ''}" data-follow="${u.id}" data-on="${u.is_following ? 1 : 0}">${u.is_following ? 'Following ✓' : 'Follow'}</button></div>
-    <div class="photogrid">${u.posts.map(tile).join('') || '<div class="card" style="grid-column:1/-1">No dishes shared yet.</div>'}</div></section>`);
-  wire();
-}
+// ---------- Collections & Profile ----------
 async function profile(tab) {
-  if (!ME) return needLogin('Log in to see your profile');
-  tab = tab || 'posts';
-  const [u, p] = await Promise.all([api('user/' + ME.id), api('profile')]);
-  const all = await api('dishes'), want = store.get('ce_want');
-  const pick = {posts: u.posts, family: u.posts.filter(x => p.saved.find(s => s.id === x.id && s.kind === 'Family dish')),
-    exp: u.posts.filter(x => p.saved.find(s => s.id === x.id && s.kind === 'Experiment')), want: all.filter(d => want.includes(d.id))}[tab] || u.posts;
-  const tabs = `<div class="seg tabs2">${[['posts', 'Posts'], ['family', 'Family'], ['exp', 'Experiments'], ['want', 'Want to try']].map(t => `<button class="${tab === t[0] ? 'on' : ''}" onclick="location.hash='#/profile/${t[0]}'">${t[1]}</button>`).join('')}</div>`;
-  V(profileHead({...u, is_me: true}, tabs) + `<p class="mut">Your dishes inspired <b>${p.inspired}</b> echoes.</p>
-    <div style="margin:10px 0"><a class="btn sm" href="#/share">+ Share a dish</a> <button class="btn sm alt" id="ed">Edit profile</button> <button class="btn sm alt" id="lo">Log out</button></div>
-    <div id="edit"></div>
-    <div class="photogrid">${pick.map(r => `<div class="tilewrap">${tile(r)}${tab !== 'want' && r.id.startsWith('saved-') ? `<button class="x" data-d="${r.id.split('-')[1]}" aria-label="Delete ${esc(r.name)}">Delete</button>` : ''}${r.privacy === 'Private' ? '<span class="lock" title="Only you">🔒</span>' : ''}</div>`).join('')
-      || '<div class="card" style="grid-column:1/-1">Nothing here yet. <a href="#/share"><b>Share your first dish</b></a>.</div>'}</div>
-    <details class="danger"><summary>Delete my account</summary><p class="mut">This removes your profile, your dishes, your likes and your follows for good.</p>
-      <label>Email</label><input id="de" type="email"><label>Password</label><input id="dp" type="password"><button class="btn sm" id="da" style="margin-top:10px;background:var(--red)">Delete my account</button></details></section>`);
-  $('lo').onclick = async () => { await api('logout', {}); ME = null; drawTop(); toast('Logged out'); location.hash = '#/'; };
-  $('ed').onclick = () => {
-    $('edit').innerHTML = `<div class="card"><label>Name</label><input id="en" value="${esc(ME.name)}" maxlength="40"><label>Bio</label><textarea id="eb" maxlength="160">${esc(ME.bio)}</textarea>
-      <button class="btn sm" id="es" style="margin-top:10px">Save profile</button></div>`;
-    $('es').onclick = async () => { const r = await api('me', {name: $('en').value, bio: $('eb').value}, 'PATCH'); if (r.error) return toast(r.error); ME = r; drawTop(); toast('Profile saved'); route(); };
-  };
-  $('da').onclick = async () => {
-    const r = await api('account', {email: $('de').value, password: $('dp').value}, 'DELETE');
-    if (r.error) return toast(r.error);
-    ME = null; drawTop(); toast('Your account was deleted'); location.hash = '#/';
-  };
+  tab = tab || 'all';
+  const p = await api('profile'), want = store.get('ce_want');
+  const all = await api('dishes'), wants = all.filter(d => want.includes(d.id));
+  const pick = {all: p.saved, family: p.saved.filter(s => s.kind === 'Family dish'), exp: p.saved.filter(s => s.kind === 'Experiment'), want: wants}[tab] || p.saved;
+  V(`<section class="s"><div class="eyebrow">Your kitchen</div><h2>Collections</h2>
+    <p class="mut">${p.saved.length} saved · your dishes inspired <b>${p.inspired}</b> echoes</p>
+    <div class="seg">${[['all', 'All mine'], ['family', 'Family recipes'], ['exp', 'My experiments'], ['want', 'Want to try']].map(t => `<button class="${tab === t[0] ? 'on' : ''}" onclick="location.hash='#/profile/${t[0]}'">${t[1]}</button>`).join('')}</div>
+    <div class="grid">${pick.map(r => tab === 'want' ? dcard(r) : `<div class="card dc"><div class="mut">${esc(r.kind)} · ${esc(r.created)} · ${esc(r.privacy)}</div>
+      <h3><a href="#/dish/${r.id}">${esc(r.name)}</a></h3>${r.parent ? `<div class="mut">Version of ${esc(r.parent)}</div>` : ''}
+      <p class="mut">${esc((r.story || '').slice(0, 120))}</p><div class="chips">${tags(r.sensory || [], 'src')}</div>
+      <a class="btn sm alt" href="#/lineage/${r.id}">Tree</a> <button class="btn sm alt" data-d="${r.id.split('-')[1]}">Delete</button></div>`).join('')
+      || '<div class="card">Nothing here yet. <a href="#/share"><b>Share your first dish</b></a>.</div>'}</div></section>`);
+  wire();
   document.querySelectorAll('[data-d]').forEach(b => b.onclick = async () => { await api('saved/' + b.dataset.d, null, 'DELETE'); profile(tab); });
 }
 
 // ---------- router ----------
-const ROUTES = {'': home, following: () => home('following'), home, discover, kitchen, explore, dish, recreate, lineage, share, posted, communities, profile, u: person, login};
+const ROUTES = {'': landing, discover, explore, dish, recreate, lineage, share, communities, profile};
 async function route() {
   const [p, ...rest] = location.hash.slice(2).split('/');
-  const tab = {'': 'home', following: 'home', home: 'home', discover: 'discover', explore: 'discover', kitchen: 'home', share: 'share', posted: 'share', communities: 'communities', profile: 'profile', u: 'profile', login: 'profile'}[p];
-  document.querySelectorAll('[data-p]').forEach(a => a.classList.toggle('on', a.dataset.p === tab));
-  V('<p class="mut" style="padding:40px 0">Loading…</p>');
-  try { await (ROUTES[p] || home)(p === 'discover' && rest.length === 0 ? undefined : rest.join('/')); } catch (e) { console.error(e); V('<div class="card" style="margin-top:20px">Something went wrong. Is the server running?</div>'); }
+  document.querySelectorAll('[data-p]').forEach(a => a.classList.toggle('on', a.dataset.p === p));
+  V('<div class="grid" style="margin-top:24px">' + '<div class="card sk"></div>'.repeat(6) + '</div>');
+  try { await (ROUTES[p] || landing)(rest.join('/')); } catch (e) { V('<div class="card" style="margin-top:20px">Something went wrong. Is the server running?</div>'); }
   scrollTo(0, 0);
 }
 $('gs').onkeydown = e => { if (e.key === 'Enter' && e.target.value.trim()) location.hash = '#/discover/' + encodeURIComponent(e.target.value.trim()); };
-addEventListener('hashchange', route);
-loadMe().then(route);
+addEventListener('hashchange', route); route();
